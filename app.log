@@ -1,0 +1,121 @@
+2025-09-05 13:54:06,165 - app_logger - DEBUG - Renderizando página Gastos.
+2025-09-05 13:54:06,165 - app_logger - DEBUG - Renderizando página Gastos.
+2025-09-05 13:54:06,165 - app_logger - DEBUG - Renderizando página Gastos.
+2025-09-05 13:54:06,165 - app_logger - DEBUG - Renderizando página Gastos.
+2025-09-05 13:54:06,165 - app_logger - DEBUG - Renderizando página Gastos.
+2025-09-05 13:54:06,165 - app_logger - DEBUG - Renderizando página Gastos.
+2025-09-05 13:54:06,165 - app_logger - DEBUG - Renderizando página Gastos.
+2025-09-05 13:54:06,165 - app_logger - DEBUG - Renderizando página Gastos.
+2025-09-05 13:54:06,165 - app_logger - DEBUG - Renderizando página Gastos.
+2025-09-05 13:54:06,165 - app_logger - DEBUG - Renderizando página Gastos.
+2025-09-05 13:54:06,165 - app_logger - DEBUG - Renderizando página Gastos.
+2025-09-05 13:54:06,168 - app_logger - DEBUG - Selecionado: Mês=9, Ano=2025
+2025-09-05 13:54:06,168 - app_logger - DEBUG - Selecionado: Mês=9, Ano=2025
+2025-09-05 13:54:06,168 - app_logger - DEBUG - Selecionado: Mês=9, Ano=2025
+2025-09-05 13:54:06,168 - app_logger - DEBUG - Selecionado: Mês=9, Ano=2025
+2025-09-05 13:54:06,168 - app_logger - DEBUG - Selecionado: Mês=9, Ano=2025
+2025-09-05 13:54:06,168 - app_logger - DEBUG - Selecionado: Mês=9, Ano=2025
+2025-09-05 13:54:06,168 - app_logger - DEBUG - Selecionado: Mês=9, Ano=2025
+2025-09-05 13:54:06,168 - app_logger - DEBUG - Selecionado: Mês=9, Ano=2025
+2025-09-05 13:54:06,168 - app_logger - DEBUG - Selecionado: Mês=9, Ano=2025
+2025-09-05 13:54:06,168 - app_logger - DEBUG - Selecionado: Mês=9, Ano=2025
+2025-09-05 13:54:06,168 - app_logger - DEBUG - Selecionado: Mês=9, Ano=2025
+2025-09-05 13:54:06,169 - app_logger - DEBUG - Dados brutos do banco de dados: [{'categoria': 'Moradia', 'total': Decimal('60000')}, {'categoria': 'Diversos', 'total': Decimal('18080')}, {'categoria': 'Macumba Jurema', 'total': Decimal('10000')}, {'categoria': 'Transporte', 'total': Decimal('3500')}, {'categoria': 'Assinaturas', 'total': Decimal('2280')}, {'categoria': 'Alimentação', 'total': Decimal('1900')}]
+2025-09-05 13:54:06,169 - app_logger - DEBUG - Dados brutos do banco de dados: [{'categoria': 'Moradia', 'total': Decimal('60000')}, {'categoria': 'Diversos', 'total': Decimal('18080')}, {'categoria': 'Macumba Jurema', 'total': Decimal('10000')}, {'categoria': 'Transporte', 'total': Decimal('3500')}, {'categoria': 'Assinaturas', 'total': Decimal('2280')}, {'categoria': 'Alimentação', 'total': Decimal('1900')}]
+2025-09-05 13:54:06,169 - app_logger - DEBUG - Dados brutos do banco de dados: [{'categoria': 'Moradia', 'total': Decimal('60000')}, {'categoria': 'Diversos', 'total': Decimal('18080')}, {'categoria': 'Macumba Jurema', 'total': Decimal('10000')}, {'categoria': 'Transporte', 'total': Decimal('3500')}, {'categoria': 'Assinaturas', 'total': Decimal('2280')}, {'categoria': 'Alimentação', 'total': Decimal('1900')}]
+2025-09-05 13:54:06,169 - app_logger - DEBUG - Dados brutos do banco de dados: [{'categoria': 'Moradia', 'total': Decimal('60000')}, {'categoria': 'Diversos', 'total': Decimal('18080')}, {'categoria': 'Macumba Jurema', 'total': Decimal('10000')}, {'categoria': 'Transporte', 'total': Decimal('3500')}, {'categoria': 'Assinaturas', 'total': Decimal('2280')}, {'categoria': 'Alimentação', 'total': Decimal('1900')}]
+2025-09-05 13:54:06,169 - app_logger - DEBUG - Dados brutos do banco de dados: [{'categoria': 'Moradia', 'total': Decimal('60000')}, {'categoria': 'Diversos', 'total': Decimal('18080')}, {'categoria': 'Macumba Jurema', 'total': Decimal('10000')}, {'categoria': 'Transporte', 'total': Decimal('3500')}, {'categoria': 'Assinaturas', 'total': Decimal('2280')}, {'categoria': 'Alimentação', 'total': Decimal('1900')}]
+2025-09-05 13:54:06,169 - app_logger - DEBUG - Dados brutos do banco de dados: [{'categoria': 'Moradia', 'total': Decimal('60000')}, {'categoria': 'Diversos', 'total': Decimal('18080')}, {'categoria': 'Macumba Jurema', 'total': Decimal('10000')}, {'categoria': 'Transporte', 'total': Decimal('3500')}, {'categoria': 'Assinaturas', 'total': Decimal('2280')}, {'categoria': 'Alimentação', 'total': Decimal('1900')}]
+2025-09-05 13:54:06,169 - app_logger - DEBUG - Dados brutos do banco de dados: [{'categoria': 'Moradia', 'total': Decimal('60000')}, {'categoria': 'Diversos', 'total': Decimal('18080')}, {'categoria': 'Macumba Jurema', 'total': Decimal('10000')}, {'categoria': 'Transporte', 'total': Decimal('3500')}, {'categoria': 'Assinaturas', 'total': Decimal('2280')}, {'categoria': 'Alimentação', 'total': Decimal('1900')}]
+2025-09-05 13:54:06,169 - app_logger - DEBUG - Dados brutos do banco de dados: [{'categoria': 'Moradia', 'total': Decimal('60000')}, {'categoria': 'Diversos', 'total': Decimal('18080')}, {'categoria': 'Macumba Jurema', 'total': Decimal('10000')}, {'categoria': 'Transporte', 'total': Decimal('3500')}, {'categoria': 'Assinaturas', 'total': Decimal('2280')}, {'categoria': 'Alimentação', 'total': Decimal('1900')}]
+2025-09-05 13:54:06,169 - app_logger - DEBUG - Dados brutos do banco de dados: [{'categoria': 'Moradia', 'total': Decimal('60000')}, {'categoria': 'Diversos', 'total': Decimal('18080')}, {'categoria': 'Macumba Jurema', 'total': Decimal('10000')}, {'categoria': 'Transporte', 'total': Decimal('3500')}, {'categoria': 'Assinaturas', 'total': Decimal('2280')}, {'categoria': 'Alimentação', 'total': Decimal('1900')}]
+2025-09-05 13:54:06,169 - app_logger - DEBUG - Dados brutos do banco de dados: [{'categoria': 'Moradia', 'total': Decimal('60000')}, {'categoria': 'Diversos', 'total': Decimal('18080')}, {'categoria': 'Macumba Jurema', 'total': Decimal('10000')}, {'categoria': 'Transporte', 'total': Decimal('3500')}, {'categoria': 'Assinaturas', 'total': Decimal('2280')}, {'categoria': 'Alimentação', 'total': Decimal('1900')}]
+2025-09-05 13:54:06,169 - app_logger - DEBUG - Dados brutos do banco de dados: [{'categoria': 'Moradia', 'total': Decimal('60000')}, {'categoria': 'Diversos', 'total': Decimal('18080')}, {'categoria': 'Macumba Jurema', 'total': Decimal('10000')}, {'categoria': 'Transporte', 'total': Decimal('3500')}, {'categoria': 'Assinaturas', 'total': Decimal('2280')}, {'categoria': 'Alimentação', 'total': Decimal('1900')}]
+2025-09-05 13:54:06,172 - app_logger - DEBUG - DataFrame do Pandas: 
+        categoria  total
+0         Moradia  60000
+1        Diversos  18080
+2  Macumba Jurema  10000
+3      Transporte   3500
+4     Assinaturas   2280
+5     Alimentação   1900
+2025-09-05 13:54:06,172 - app_logger - DEBUG - DataFrame do Pandas: 
+        categoria  total
+0         Moradia  60000
+1        Diversos  18080
+2  Macumba Jurema  10000
+3      Transporte   3500
+4     Assinaturas   2280
+5     Alimentação   1900
+2025-09-05 13:54:06,172 - app_logger - DEBUG - DataFrame do Pandas: 
+        categoria  total
+0         Moradia  60000
+1        Diversos  18080
+2  Macumba Jurema  10000
+3      Transporte   3500
+4     Assinaturas   2280
+5     Alimentação   1900
+2025-09-05 13:54:06,172 - app_logger - DEBUG - DataFrame do Pandas: 
+        categoria  total
+0         Moradia  60000
+1        Diversos  18080
+2  Macumba Jurema  10000
+3      Transporte   3500
+4     Assinaturas   2280
+5     Alimentação   1900
+2025-09-05 13:54:06,172 - app_logger - DEBUG - DataFrame do Pandas: 
+        categoria  total
+0         Moradia  60000
+1        Diversos  18080
+2  Macumba Jurema  10000
+3      Transporte   3500
+4     Assinaturas   2280
+5     Alimentação   1900
+2025-09-05 13:54:06,172 - app_logger - DEBUG - DataFrame do Pandas: 
+        categoria  total
+0         Moradia  60000
+1        Diversos  18080
+2  Macumba Jurema  10000
+3      Transporte   3500
+4     Assinaturas   2280
+5     Alimentação   1900
+2025-09-05 13:54:06,172 - app_logger - DEBUG - DataFrame do Pandas: 
+        categoria  total
+0         Moradia  60000
+1        Diversos  18080
+2  Macumba Jurema  10000
+3      Transporte   3500
+4     Assinaturas   2280
+5     Alimentação   1900
+2025-09-05 13:54:06,172 - app_logger - DEBUG - DataFrame do Pandas: 
+        categoria  total
+0         Moradia  60000
+1        Diversos  18080
+2  Macumba Jurema  10000
+3      Transporte   3500
+4     Assinaturas   2280
+5     Alimentação   1900
+2025-09-05 13:54:06,172 - app_logger - DEBUG - DataFrame do Pandas: 
+        categoria  total
+0         Moradia  60000
+1        Diversos  18080
+2  Macumba Jurema  10000
+3      Transporte   3500
+4     Assinaturas   2280
+5     Alimentação   1900
+2025-09-05 13:54:06,172 - app_logger - DEBUG - DataFrame do Pandas: 
+        categoria  total
+0         Moradia  60000
+1        Diversos  18080
+2  Macumba Jurema  10000
+3      Transporte   3500
+4     Assinaturas   2280
+5     Alimentação   1900
+2025-09-05 13:54:06,172 - app_logger - DEBUG - DataFrame do Pandas: 
+        categoria  total
+0         Moradia  60000
+1        Diversos  18080
+2  Macumba Jurema  10000
+3      Transporte   3500
+4     Assinaturas   2280
+5     Alimentação   1900

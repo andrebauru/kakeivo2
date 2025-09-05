@@ -1,94 +1,169 @@
 import streamlit as st
 import mysql.connector
+from mysql.connector.errors import OperationalError
 from datetime import datetime, date
 import calendar
 from streamlit_calendar import calendar as st_calendar
+import pandas as pd
+import time
+from functools import wraps
+import logging
+import altair as alt
 
-# --- 1. Conexão com o Banco de Dados ---
-@st.cache_resource
+# --- Configuração do Logger ---
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger('app_logger')
+logger.setLevel(logging.DEBUG)
+file_handler = logging.FileHandler('app.log')
+file_handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
+
+# --- 1. Conexão com o Banco de Dados e Decorador de Reconexão ---
+
 def init_connection():
+    logger.debug("Tentando inicializar a conexão com o banco de dados...")
     try:
-        return mysql.connector.connect(**st.secrets["mysql"])
+        conn = mysql.connector.connect(**st.secrets["mysql"])
+        logger.info("Conexão com o banco de dados estabelecida com sucesso.")
+        return conn
     except Exception as e:
-        st.error(f"Erro ao conectar ao banco de dados. Verifique suas credenciais em .streamlit/secrets.toml. Erro: {e}")
+        logger.error(f"Erro ao conectar ao banco de dados: {e}")
+        st.error(f"Erro ao conectar ao banco de dados. Verifique suas credenciais. Erro: {e}")
         st.stop()
 
-conn = init_connection()
+def reconnect_on_error(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except OperationalError as e:
+            if e.errno == 2006:
+                logger.warning("Conexão com o MySQL foi perdida. Tentando reconectar...")
+                st.session_state.conn = init_connection()
+                return func(*args, **kwargs)
+            else:
+                logger.error(f"Erro operacional não esperado: {e}")
+                raise e
+    return wrapper
+
+if "conn" not in st.session_state:
+    st.session_state.conn = init_connection()
 
 # --- 2. Funções de Backend (Interação com o DB) ---
+
+@reconnect_on_error
 def get_db_value(name):
     """Busca um valor da tabela de configurações."""
-    cursor = conn.cursor()
+    cursor = st.session_state.conn.cursor()
     cursor.execute("SELECT valor FROM configuracoes WHERE nome = %s", (name,))
     result = cursor.fetchone()
     cursor.close()
     return result[0] if result else None
 
+@reconnect_on_error
 def update_db_value(name, value):
     """Atualiza um valor na tabela de configurações."""
-    cursor = conn.cursor()
+    cursor = st.session_state.conn.cursor()
     try:
         cursor.execute("UPDATE configuracoes SET valor = %s WHERE nome = %s", (value, name))
-        conn.commit()
-        st.success(f"Configuração '{name}' atualizada com sucesso!")
+        st.session_state.conn.commit()
         return True
     except Exception as e:
-        st.error(f"Erro ao atualizar a configuração '{name}': {e}")
-        conn.rollback()
+        logger.error(f"Erro ao atualizar a configuração '{name}': {e}")
+        st.session_state.conn.rollback()
         return False
     finally:
         cursor.close()
 
-def insert_transaction(data, valor, tipo, categoria, descricao, forma_pagamento):
+@reconnect_on_error
+def insert_transaction(data, valor, tipo, categoria, descricao, forma_pagamento, pago):
     """Insere uma nova transação no banco de dados."""
-    cursor = conn.cursor()
+    cursor = st.session_state.conn.cursor()
     try:
-        sql = "INSERT INTO transacoes (data, valor, tipo, categoria, descricao, forma_pagamento) VALUES (%s, %s, %s, %s, %s, %s)"
-        cursor.execute(sql, (data, valor, tipo, categoria, descricao, forma_pagamento))
-        conn.commit()
+        sql = "INSERT INTO transacoes (data, valor, tipo, categoria, descricao, forma_pagamento, pago) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+        cursor.execute(sql, (data, valor, tipo, categoria, descricao, forma_pagamento, pago))
+        st.session_state.conn.commit()
         return True
     except Exception as e:
-        st.error(f"Erro ao registrar a transação: {e}")
-        conn.rollback()
+        logger.error(f"Erro ao registrar a transação: {e}")
+        st.session_state.conn.rollback()
         return False
     finally:
         cursor.close()
 
-def update_transaction(id, data, valor, tipo, categoria, descricao, forma_pagamento):
-    """Atualiza uma transação existente no banco de dados."""
-    cursor = conn.cursor()
+@reconnect_on_error
+def update_transaction(id, data, valor, tipo, categoria, descricao, forma_pagamento, pago):
+    """Atualiza uma transação existente no banco de dados, incluindo o status de pago."""
+    cursor = st.session_state.conn.cursor()
     try:
-        sql = "UPDATE transacoes SET data = %s, valor = %s, tipo = %s, categoria = %s, descricao = %s, forma_pagamento = %s WHERE id = %s"
-        cursor.execute(sql, (data, valor, tipo, categoria, descricao, forma_pagamento, id))
-        conn.commit()
+        sql = "UPDATE transacoes SET data = %s, valor = %s, tipo = %s, categoria = %s, descricao = %s, forma_pagamento = %s, pago = %s WHERE id = %s"
+        cursor.execute(sql, (data, valor, tipo, categoria, descricao, forma_pagamento, pago, id))
+        st.session_state.conn.commit()
         return True
     except Exception as e:
-        st.error(f"Erro ao atualizar a transação: {e}")
-        conn.rollback()
+        logger.error(f"Erro ao atualizar a transação: {e}")
+        st.session_state.conn.rollback()
         return False
     finally:
         cursor.close()
 
+@reconnect_on_error
+def mark_transaction_as_paid(id):
+    """Marca uma transação específica como paga."""
+    cursor = st.session_state.conn.cursor()
+    try:
+        sql = "UPDATE transacoes SET pago = 1 WHERE id = %s"
+        cursor.execute(sql, (id,))
+        st.session_state.conn.commit()
+        return True
+    except Exception as e:
+        logger.error(f"Erro ao marcar como pago: {e}")
+        st.session_state.conn.rollback()
+        return False
+    finally:
+        cursor.close()
+
+@reconnect_on_error
+def delete_transaction(id):
+    """Exclui uma transação do banco de dados."""
+    cursor = st.session_state.conn.cursor()
+    try:
+        sql = "DELETE FROM transacoes WHERE id = %s"
+        cursor.execute(sql, (id,))
+        st.session_state.conn.commit()
+        return True
+    except Exception as e:
+        logger.error(f"Erro ao excluir a transação: {e}")
+        st.session_state.conn.rollback()
+        return False
+    finally:
+        cursor.close()
+
+@reconnect_on_error
 def get_transactions_by_month(year, month):
     """Busca todas as transações de um mês e ano específicos."""
-    cursor = conn.cursor(dictionary=True)
+    cursor = st.session_state.conn.cursor(dictionary=True)
     cursor.execute("SELECT * FROM transacoes WHERE YEAR(data) = %s AND MONTH(data) = %s ORDER BY data DESC", (year, month))
     records = cursor.fetchall()
     cursor.close()
     return records
 
+@reconnect_on_error
 def get_total_by_type(year, month, transaction_type):
     """Calcula o valor total de receitas ou despesas para um mês."""
-    cursor = conn.cursor()
+    cursor = st.session_state.conn.cursor()
     cursor.execute("SELECT SUM(valor) FROM transacoes WHERE YEAR(data) = %s AND MONTH(data) = %s AND tipo = %s", (year, month, transaction_type))
     result = cursor.fetchone()
     cursor.close()
     return int(result[0]) if result[0] else 0
 
+@reconnect_on_error
 def get_paginated_transactions(page_number, page_size=10):
     """Busca transações com paginação e total de registros."""
     offset = (page_number - 1) * page_size
-    cursor = conn.cursor(dictionary=True)
+    cursor = st.session_state.conn.cursor(dictionary=True)
     cursor.execute("SELECT COUNT(*) FROM transacoes")
     total_records = cursor.fetchone()['COUNT(*)']
     
@@ -99,7 +174,53 @@ def get_paginated_transactions(page_number, page_size=10):
     
     return records, total_records
 
+@reconnect_on_error
+def get_expenses_by_category(year, month):
+    """Busca o total de despesas por categoria para um mês e ano específicos."""
+    cursor = st.session_state.conn.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT categoria, SUM(valor) AS total
+        FROM transacoes
+        WHERE YEAR(data) = %s AND MONTH(data) = %s AND tipo = 'despesa'
+        GROUP BY categoria
+        ORDER BY total DESC
+    """, (year, month))
+    records = cursor.fetchall()
+    cursor.close()
+    return records
+
+def get_calendar_events(year, month):
+    """Converte as transações para o formato de eventos do calendário com cores."""
+    transactions = get_transactions_by_month(year, month)
+    events = []
+    today = date.today()
+
+    for t in transactions:
+        event_title = f"¥{t['valor']:,} | {t['categoria']}"
+
+        if t['tipo'] == 'receita':
+            event_color = "#34A853" # Verde
+            event_title = f"Entrada: {event_title}"
+        elif t['tipo'] == 'despesa':
+            if t['pago'] == 1:
+                event_color = "#4285F4" # Azul para Pago
+                event_title = f"Pago: {event_title}"
+            elif t['data'] < today:
+                event_color = "#EA4335" # Vermelho para Atrasado
+                event_title = f"⚠ Atrasado: {event_title}"
+            else:
+                event_color = "#FBBC04" # Amarelo para A Pagar
+
+        events.append({
+            "title": event_title,
+            "start": t['data'].strftime('%Y-%m-%d'),
+            "end": t['data'].strftime('%Y-%m-%d'),
+            "color": event_color
+        })
+    return events
+
 # --- 3. Lógica de Autenticação com `st.session_state` ---
+
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 if "current_page" not in st.session_state:
@@ -110,6 +231,8 @@ if "current_page_num" not in st.session_state:
     st.session_state.current_page_num = 1
 if "editing_transaction_id" not in st.session_state:
     st.session_state.editing_transaction_id = None
+if "edit_data" not in st.session_state:
+    st.session_state.edit_data = {}
 
 def check_password():
     """Formulário de login para autenticação."""
@@ -130,9 +253,11 @@ def check_password():
     return st.session_state.authenticated
 
 # --- 4. Renderização da Interface (Front-end) ---
+
 if check_password():
     st.title("📊 Kakeibo - Gestor Financeiro")
-    page = st.sidebar.radio("Navegação", ["Home", "Registros", "Configurações"])
+
+    page = st.sidebar.radio("Navegação", ["Home", "Gastos", "Registros", "Configurações"])
 
     # --- Página Home ---
     if page == "Home":
@@ -155,7 +280,9 @@ if check_password():
         st.markdown("---")
 
         st.subheader("Selecione um dia:")
-        # Uso do componente streamlit-calendar
+        
+        events = get_calendar_events(selected_year, selected_month)
+
         calendar_options = {
             "headerToolbar": {
                 "left": "today prev,next",
@@ -164,26 +291,35 @@ if check_password():
             }
         }
         
-        # O `event_click_data` vai conter as informações do evento clicado.
-        # No nosso caso, vamos usar o `day_click_data` para obter a data selecionada.
         calendar_data = st_calendar(
-            events=[],
+            events=events,
             options=calendar_options,
             key="calendar"
         )
 
-        # Se uma data for clicada no calendário, atualiza o estado da sessão
         if calendar_data:
             if "start" in calendar_data:
                 selected_date_str = calendar_data["start"]
                 st.session_state.selected_date = datetime.fromisoformat(selected_date_str.replace("Z", "")).date()
                 st.rerun()
 
-        st.divider()
+        st.markdown("---")
+        st.subheader("Legenda do Calendário")
+        st.markdown("""
+        - <span style="color:#34A853;">**Verde:** Receita</span>
+        - <span style="color:#FBBC04;">**Amarelo:** Despesa a Pagar</span>
+        - <span style="color:#EA4335;">**Vermelho:** Despesa Atrasada</span>
+        - <span style="color:#4285F4;">**Azul:** Conta Paga</span>
+        """, unsafe_allow_html=True)
+        st.markdown("---")
+
         st.subheader("Registrar Transação")
         
         with st.expander(f"Registrar para o dia: {st.session_state.selected_date.strftime('%d/%m/%Y')}", expanded=True):
-            with st.form("transaction_form"):
+            with st.form(key="transaction_form"):
+                
+                form_date = st.date_input("Data da Transação", value=st.session_state.selected_date)
+
                 valor = st.number_input("Valor (JPY)", min_value=1, step=1)
                 tipo = st.radio("Tipo", ["despesa", "receita"], horizontal=True)
                 
@@ -196,6 +332,8 @@ if check_password():
                 forma_pagamento = st.selectbox("Forma de Pagamento", payment_methods)
 
                 descricao = st.text_area("Descrição (opcional)")
+
+                pago = st.checkbox("Marcar como Pago")
                 
                 submit_transaction = st.form_submit_button("Registrar")
 
@@ -203,10 +341,51 @@ if check_password():
                 if valor <= 0:
                     st.warning("O valor deve ser maior que zero.")
                 else:
-                    if insert_transaction(st.session_state.selected_date, valor, tipo, categoria, descricao, forma_pagamento):
+                    if insert_transaction(form_date, valor, tipo, categoria, descricao, forma_pagamento, pago):
                         st.success("Transação registrada com sucesso!")
                         st.session_state.selected_date = today 
                         st.rerun()
+
+    # --- Página Gastos ---
+    elif page == "Gastos":
+        st.session_state.current_page = "Gastos"
+        st.header("Gráfico de Gastos por Categoria")
+        
+        logger.debug("Renderizando página Gastos.")
+        today = date.today()
+        col1, col2 = st.columns(2)
+        with col1:
+            month_options = list(calendar.month_name)[1:]
+            selected_month_name = st.selectbox("Mês", month_options, index=today.month - 1, key="gastos_month")
+            selected_month = month_options.index(selected_month_name) + 1
+        with col2:
+            selected_year = st.selectbox("Ano", range(today.year - 5, today.year + 5), index=5, key="gastos_year")
+
+        logger.debug(f"Selecionado: Mês={selected_month}, Ano={selected_year}")
+        expenses_data = get_expenses_by_category(selected_year, selected_month)
+
+        if expenses_data:
+            df_expenses = pd.DataFrame(expenses_data)
+            logger.debug(f"Dados brutos do banco de dados: {expenses_data}")
+            logger.debug(f"DataFrame do Pandas: \n{df_expenses}")
+            
+            # Converte 'total' para int para o gráfico, pois o Decimal pode causar problemas
+            df_expenses['total'] = df_expenses['total'].astype(int)
+            
+            chart = alt.Chart(df_expenses).mark_bar().encode(
+                x=alt.X('categoria', sort='-y'),
+                y='total'
+            ).properties(
+                title=f"Gastos por Categoria - {selected_month_name} {selected_year}"
+            )
+            st.altair_chart(chart, use_container_width=True)
+            
+            st.write("Dados de gastos por categoria:")
+            st.dataframe(df_expenses, use_container_width=True)
+        else:
+            st.info("Nenhuma despesa encontrada para o mês e ano selecionados.")
+            logger.info("Nenhuma despesa encontrada para o período selecionado. Não foi possível gerar o gráfico.")
+
 
     # --- Página de Registros ---
     elif page == "Registros":
@@ -216,33 +395,39 @@ if check_password():
         records, total_records = get_paginated_transactions(st.session_state.current_page_num)
         
         if records:
-            cols = st.columns([0.1, 1, 1, 1, 1, 1, 1])
-            headers = ["", "Data", "Valor", "Tipo", "Categoria", "Descrição", "Pagamento"]
-            for i, header in enumerate(headers):
-                with cols[i]:
-                    st.markdown(f"**{header}**")
-
+            st.markdown("---")
             for record in records:
-                col_edit, col_date, col_value, col_type, col_cat, col_desc, col_pay = st.columns([0.1, 1, 1, 1, 1, 1, 1])
+                st.subheader(f"{record['data'].strftime('%Y-%m-%d')} - {record['categoria']}")
                 
-                with col_edit:
-                    if st.button("✏️", key=f"edit_{record['id']}"):
+                col_info, col_actions = st.columns([2, 1])
+                
+                with col_info:
+                    st.write(f"**Valor:** ¥{record['valor']:,}")
+                    st.write(f"**Tipo:** {record['tipo']}")
+                    st.write(f"**Pagamento:** {record['forma_pagamento']}")
+                    st.write(f"**Status:** {'Pago' if record['pago'] else 'A Pagar'}")
+                    if record['descricao']:
+                        st.write(f"**Descrição:** {record['descricao']}")
+                
+                with col_actions:
+                    if st.button("✏️ Editar", key=f"edit_{record['id']}", use_container_width=True):
                         st.session_state.editing_transaction_id = record['id']
                         st.session_state.edit_data = record
                         st.rerun()
 
-                with col_date:
-                    st.write(record['data'].strftime('%Y-%m-%d'))
-                with col_value:
-                    st.write(f"¥{record['valor']:,}")
-                with col_type:
-                    st.write(record['tipo'])
-                with col_cat:
-                    st.write(record['categoria'])
-                with col_desc:
-                    st.write(record['descricao'])
-                with col_pay:
-                    st.write(record['forma_pagamento'])
+                    if not record['pago'] and record['tipo'] == 'despesa':
+                        if st.button("✅ Pagar", key=f"mark_{record['id']}", use_container_width=True):
+                            if mark_transaction_as_paid(record['id']):
+                                st.success("Transação marcada como paga!")
+                                st.rerun()
+                    
+                    if st.button("🗑️ Excluir", key=f"delete_{record['id']}", use_container_width=True):
+                        if delete_transaction(record['id']):
+                            st.success("Transação excluída com sucesso!")
+                            st.rerun()
+
+                st.markdown("---")
+
             
             total_pages = (total_records + 9) // 10
             pagination_col1, pagination_col2, pagination_col3 = st.columns([1,2,1])
@@ -266,7 +451,9 @@ if check_password():
             st.subheader("Editar Transação")
             with st.expander("Formulário de Edição", expanded=True):
                 edit_record = st.session_state.edit_data
-                with st.form("edit_transaction_form"):
+                with st.form(key=f"edit_form_{st.session_state.editing_transaction_id}"):
+                    
+                    edit_date = st.date_input("Data da Transação", value=edit_record['data'])
                     edit_valor = st.number_input("Valor (JPY)", min_value=1, step=1, value=int(edit_record['valor']))
                     edit_tipo = st.radio("Tipo", ["despesa", "receita"], horizontal=True, index=0 if edit_record['tipo'] == 'despesa' else 1)
                     
@@ -282,6 +469,8 @@ if check_password():
 
                     edit_descricao = st.text_area("Descrição (opcional)", value=edit_record['descricao'])
                     
+                    edit_pago = st.checkbox("Marcar como Pago", value=bool(edit_record['pago']))
+
                     col_save, col_cancel = st.columns([1,1])
                     with col_save:
                         save_button = st.form_submit_button("Salvar Edição")
@@ -292,7 +481,7 @@ if check_password():
                     if edit_valor <= 0:
                         st.warning("O valor deve ser maior que zero.")
                     else:
-                        if update_transaction(edit_record['id'], edit_record['data'], edit_valor, edit_tipo, edit_categoria, edit_descricao, edit_forma_pagamento):
+                        if update_transaction(edit_record['id'], edit_date, edit_valor, edit_tipo, edit_categoria, edit_descricao, edit_forma_pagamento, edit_pago):
                             st.success("Transação atualizada com sucesso!")
                             st.session_state.editing_transaction_id = None
                             st.rerun()
